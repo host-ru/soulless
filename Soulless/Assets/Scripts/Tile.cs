@@ -8,6 +8,8 @@ public class Tile : MonoBehaviour {
     public int x;
     public int y;
 
+    public Unit associatedUnit = null;
+
     public Tile[] GetNeighbors()
     {
         // Find all the neighbors
@@ -20,5 +22,9 @@ public class Tile : MonoBehaviour {
 
         return neighbors;
     }
-	
+
+    private void OnMouseEnter()
+    {
+        GetComponentInChildren<Renderer>().material.color = Color.red;
+    }
 }

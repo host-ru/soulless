@@ -23,9 +23,11 @@ public class MouseManager : MonoBehaviour {
 
         // Getting info about what object we're looking at
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        int layer_mask = LayerMask.GetMask("Tiles"); // We're only hitting tiles here
+        float maxDistance = 1000f;
         RaycastHit hitInfo;
 
-        if (Physics.Raycast(ray, out hitInfo))
+        if (Physics.Raycast(ray, out hitInfo, maxDistance, layer_mask))
         {
             // Identify the object we hit
             GameObject hitObject = hitInfo.collider.transform.parent.gameObject; 
@@ -35,11 +37,6 @@ public class MouseManager : MonoBehaviour {
             {
                 // We are over a tile
                 MouseOverTile(hitObject);
-            }
-            else if (hitObject.GetComponent<Unit>() != null)
-            {
-                // We are over a unit
-                MouseOverUnit(hitObject);
             }
         }
 	}
@@ -52,16 +49,19 @@ public class MouseManager : MonoBehaviour {
         {
             // We clicked at a tile, do something...
             mr.material.color = Color.red;
-
-            if (selectedUnit != null)
+            if (hitObject.GetComponent<Tile>().associatedUnit != null)
             {
-                selectedUnit.destination = hitObject.transform.position;
+                selectedUnit = hitObject.GetComponent<Tile>().associatedUnit;
             }
         }
-    }
-
-    void MouseOverUnit(GameObject hitObject)
-    {
-        selectedUnit = hitObject.GetComponent<Unit>();
+        else if (Input.GetMouseButtonDown(1))
+        {
+            if (selectedUnit != null)
+            {
+                selectedUnit.destinationTile.associatedUnit = null;
+                selectedUnit.destinationTile = hitObject.GetComponent<Tile>();
+                hitObject.GetComponent<Tile>().associatedUnit = selectedUnit;
+            }
+        }
     }
 }
