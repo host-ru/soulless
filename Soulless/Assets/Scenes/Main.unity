@@ -333,7 +333,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 114222118646485140, guid: a2a14bf59e514a04d85976b985b78ee7, type: 2}
   linePrefab: {fileID: 1497815729659586, guid: 3529f1b7ef802464aaba158c2d41d925, type: 2}
-  highlightPrefab: {fileID: 1264628367893424, guid: f3bc203f7bc635b43bb33dbf351f6fe2,
+  highlightClicksPrefab: {fileID: 1264628367893424, guid: f3bc203f7bc635b43bb33dbf351f6fe2,
+    type: 2}
+  highlightMovesPrefab: {fileID: 1264628367893424, guid: 6a0a4a301c89ed1419299890211b8c31,
     type: 2}
 --- !u!4 &1347791666
 Transform:
