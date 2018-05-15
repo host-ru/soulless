@@ -6,8 +6,10 @@ public class Unit : MonoBehaviour {
 
     public Tile destinationTile;
     public float speed = 2;
+    public bool isMoving = false;
+    public float moves = 5f;
+    public float movesLeft = 5f;
 
-    //Tile associatedTile;
     Vector3 destination;
 
 	// Use this for initialization
@@ -28,6 +30,11 @@ public class Unit : MonoBehaviour {
 
         // Make sure velocity doesn't exceed destination
         velocity = Vector3.ClampMagnitude(velocity, direction.magnitude);
+
+        if (velocity.magnitude != 0)
+            isMoving = true;
+        else
+            isMoving = false;
 
         transform.Translate(velocity);
 	}

@@ -7,24 +7,7 @@ public class Tile : MonoBehaviour {
     // Coordinates of a tile
     public int x;
     public int y;
+    public int tileType;
 
     public Unit associatedUnit = null;
-
-    public Tile[] GetNeighbors()
-    {
-        // Find all the neighbors
-        GameObject leftNeighbor = GameObject.Find("Tile_" + (x - 1) + "_" + y);
-        GameObject rightNeighbor = GameObject.Find("Tile_" + (x + 1) + "_" + y);
-        GameObject upNeighbor = GameObject.Find("Tile_" + x + "_" + (y + 1));
-        GameObject downNeighbor = GameObject.Find("Tile_" + x + "_" + (y - 1));
-
-        Tile[] neighbors = { leftNeighbor.GetComponent<Tile>(), rightNeighbor.GetComponent<Tile>(), upNeighbor.GetComponent<Tile>(), downNeighbor.GetComponent<Tile>() };
-
-        return neighbors;
-    }
-
-    private void OnMouseEnter()
-    {
-        GetComponentInChildren<Renderer>().material.color = Color.red;
-    }
 }
