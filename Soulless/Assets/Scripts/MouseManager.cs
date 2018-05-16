@@ -110,7 +110,14 @@ public class MouseManager : MonoBehaviour {
         currentPath.RemoveAt(0);
         for (int i = 0; i < currentPath.Count; i++)
         {
-            yield return new WaitForFixedUpdate();
+
+            Destroy(lines[i]);
+
+            selectedUnit.destinationTile = currentPath[i];
+            selectedUnit.movesLeft -= map.CostToEnterTile(currentPath[i]);
+
+            while (!selectedUnit.isMoving)
+                yield return new WaitForFixedUpdate();
             while (selectedUnit.isMoving)
             {
                 for (int j = 0; j < highlightMoves.Count; j++)
@@ -122,14 +129,7 @@ public class MouseManager : MonoBehaviour {
                 //lines[i].transform.localScale = new Vector3(0, 0.2f, 0);
                 yield return new WaitForFixedUpdate();
             }
-            Destroy(lines[i]);
 
-            selectedUnit.destinationTile = currentPath[i];
-            selectedUnit.movesLeft -= map.CostToEnterTile(currentPath[i]);
-
-            //yield return new WaitForFixedUpdate();
-            //while (selectedUnit.isMoving)
-            //    yield return new WaitForFixedUpdate();
         }
         lines.Clear();
         hitObject.GetComponent<Tile>().associatedUnit = selectedUnit;
