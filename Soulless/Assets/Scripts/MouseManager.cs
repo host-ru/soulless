@@ -10,7 +10,7 @@ public class MouseManager : MonoBehaviour {
     public GameObject highlightClicksPrefab;
     public GameObject highlightMovesPrefab;
 
-    Unit selectedUnit;
+    public Unit selectedUnit;
     List<Tile> currentPath = null;
     GameObject hitObject = null;
     bool waitingUnitToStop = false;
@@ -36,6 +36,12 @@ public class MouseManager : MonoBehaviour {
         float maxDistance = 1000f;
         RaycastHit hitInfo;
 
+        // Highlight all available tiles to move
+        if (selectedUnit != null && highlightMoves.Count == 0 && (waitingUnitToStop == false))
+        {
+            HighlightAvailableTiles();
+        }
+
         if (Physics.Raycast(ray, out hitInfo, maxDistance, layer_mask))
         {
             // Identify the object we hit
@@ -48,17 +54,6 @@ public class MouseManager : MonoBehaviour {
                 MouseOverTile(hitObject);
             }
         }
-
-        // Highlight all available tiles to move
-        if (selectedUnit != null && highlightMoves.Count == 0 && (waitingUnitToStop == false))
-        {
-            List<Tile> availableTiles = map.GetAvailableTiles(selectedUnit.destinationTile, selectedUnit.destinationTile, selectedUnit.movesLeft);
-
-            for (int i = 0; i < availableTiles.Count; i++)
-            {
-                highlightMoves.Add((GameObject)Instantiate(highlightMovesPrefab, availableTiles[i].transform.position, Quaternion.identity));
-            }
-        }
 	}
 
     void MouseOverTile(GameObject hitObject)
@@ -66,21 +61,20 @@ public class MouseManager : MonoBehaviour {
         if (Input.GetMouseButtonDown(0))
         {
             // We clicked at a tile, do something...
-            //GameObject highlightClicks = (GameObject)Instantiate(highlightClicksPrefab, hitObject.transform.position, Quaternion.identity);
-            if (hitObject.GetComponent<Tile>().associatedUnit != null)
+
+            if (selectedUnit == null || !selectedUnit.isMoving)
             {
-                selectedUnit = hitObject.GetComponent<Tile>().associatedUnit;
-            }
-            else
-            {
-                //selectedUnit = null;
+                selectedUnit = hitObject.GetComponent<Tile>().AssociatedUnit;
+                if (selectedUnit != null)
+                    HighlightAvailableTiles();
+                else
+                    ClearHighlightedTiles();
             }
         }
         else if (Input.GetMouseButtonDown(1))
         {
-            if (selectedUnit != null && !waitingUnitToStop)
+            if (selectedUnit != null && !waitingUnitToStop && hitObject.GetComponent<Tile>().AssociatedUnit == null)
             {
-                
                 StartCoroutine("WaitUntilUnitStops");
             }
         }
@@ -88,10 +82,14 @@ public class MouseManager : MonoBehaviour {
 
     IEnumerator WaitUntilUnitStops()
     {
-        
         waitingUnitToStop = true;
         currentPath = map.GeneratePath(selectedUnit.destinationTile, hitObject.GetComponent<Tile>());
-        selectedUnit.destinationTile.associatedUnit = null;
+
+        GameObject path = new GameObject();
+        path.name = "Path";
+
+        selectedUnit.destinationTile.AssociatedUnit = null;
+        hitObject.GetComponent<Tile>().AssociatedUnit = selectedUnit;
         Vector3[] positions = new Vector3[currentPath.Count];
         for (int i = 0; i < currentPath.Count; i++)
         {
@@ -104,7 +102,7 @@ public class MouseManager : MonoBehaviour {
             Vector3 desiredDirection = new Vector3(currentPath[i].transform.position.x, 0, currentPath[i].transform.position.z) - positions[i - 1];
             desiredDirection = desiredDirection.normalized;
             Quaternion q = Quaternion.Euler(90 * desiredDirection.z, 90 * desiredDirection.y, - 90 * desiredDirection.x);
-            lines.Add((GameObject)Instantiate(pathLine, positions[i - 1], q));
+            lines.Add((GameObject)Instantiate(pathLine, positions[i - 1], q, path.transform));
         }
 
         currentPath.RemoveAt(0);
@@ -120,11 +118,7 @@ public class MouseManager : MonoBehaviour {
                 yield return new WaitForFixedUpdate();
             while (selectedUnit.isMoving)
             {
-                for (int j = 0; j < highlightMoves.Count; j++)
-                {
-                    Destroy(highlightMoves[j]);
-                }
-                highlightMoves.Clear();
+                ClearHighlightedTiles(); 
                 //Vector3 desiredDirection = new Vector3(currentPath[i].transform.position.x, 0, currentPath[i].transform.position.z) - positions[i];
                 //lines[i].transform.localScale = new Vector3(0, 0.2f, 0);
                 yield return new WaitForFixedUpdate();
@@ -132,11 +126,35 @@ public class MouseManager : MonoBehaviour {
 
         }
         lines.Clear();
-        hitObject.GetComponent<Tile>().associatedUnit = selectedUnit;
+        Destroy(path);
         currentPath = null;
         waitingUnitToStop = false;
 
-        
-        selectedUnit.movesLeft = selectedUnit.moves;
+        // Temporary
+        if (selectedUnit.movesLeft < 0)
+            selectedUnit.movesLeft = selectedUnit.moves;
+    }
+
+    void HighlightAvailableTiles()
+    {
+        if (highlightMoves.Count > 0)
+        {
+            ClearHighlightedTiles();
+        }
+        List<Tile> availableTiles = map.GetAvailableTiles(selectedUnit.destinationTile, selectedUnit.destinationTile, selectedUnit.movesLeft);
+        availableTiles.RemoveAt(0);
+        for (int i = 0; i < availableTiles.Count; i++)
+        {
+            highlightMoves.Add((GameObject)Instantiate(highlightMovesPrefab, availableTiles[i].transform.position, Quaternion.identity, GameObject.Find("HighlightMoves").transform));
+        }
+    }
+
+    void ClearHighlightedTiles()
+    {
+        for (int j = 0; j < highlightMoves.Count; j++)
+        {
+            Destroy(highlightMoves[j]);
+        }
+        highlightMoves.Clear();
     }
 }

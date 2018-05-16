@@ -8,6 +8,24 @@ public class Tile : MonoBehaviour {
     public int x;
     public int y;
     public int tileType;
+    public bool isOccupied;
 
-    public Unit associatedUnit = null;
+    private Unit associatedUnit = null;
+
+    public Unit AssociatedUnit
+    {
+        get
+        {
+            return associatedUnit;
+        }
+
+        set
+        {
+            if (value == null)
+                isOccupied = false;
+            else
+                isOccupied = true;
+            associatedUnit = value;
+        }
+    }
 }

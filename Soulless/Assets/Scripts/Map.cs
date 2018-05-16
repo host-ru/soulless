@@ -133,6 +133,9 @@ public class Map : MonoBehaviour {
     public float CostToEnterTile(Tile tile)
     {
         TileType tt = tileTypes[tile.tileType];
+        //if (tile.AssociatedUnit != null && tile.AssociatedUnit != )
+        //    return Mathf.Infinity;
+        //else
         return tt.movementCost;
     }
 
@@ -145,6 +148,8 @@ public class Map : MonoBehaviour {
     {
         Dijkstra(startTile, destinationTile);
         List<Tile> path = new List<Tile>();
+        if (currentPath == null)
+            return null;
         for (int i = 0; i < currentPath.Count; i++)
         {
             path.Add(GetTile(currentPath[i].x, currentPath[i].y));

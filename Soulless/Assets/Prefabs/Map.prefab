@@ -51,8 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a755e103f26e1e41a06d6cda6648ac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 12
-  height: 12
+  width: 25
+  height: 25
   zOffset: -0.5
   tileTypes:
   - name: Grass
@@ -62,11 +62,11 @@ MonoBehaviour:
   - name: Mountain
     tilePrefab: {fileID: 1252397797128070, guid: 919f6cf5494860e429c7b00181a1985c,
       type: 2}
-    movementCost: 1e+9
+    movementCost: Infinity
   - name: Water
     tilePrefab: {fileID: 1783470108519444, guid: e1d037a161b8d2c44bae188eff4b3c20,
       type: 2}
-    movementCost: 1e+9
+    movementCost: Infinity
   - name: Swamp
     tilePrefab: {fileID: 1510196591806326, guid: cb30c9f0a853c30448389074a3999991,
       type: 2}
