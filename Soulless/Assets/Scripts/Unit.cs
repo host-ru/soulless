@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour {
 
-    public Tile destinationTile;
+    private Tile destinationTile;
     public float speed = 2;
     public bool isMoving = false;
     public float moves = 5f;
@@ -13,8 +13,24 @@ public class Unit : MonoBehaviour {
     Vector3 destination;
     Vector3 offset = new Vector3(0, 1, 0);
 
-	// Use this for initialization
-	void Start () {
+    public Tile DestinationTile
+    {
+        get
+        {
+            return destinationTile;
+        }
+
+        set
+        {
+            if (destinationTile != null)
+                destinationTile.AssociatedUnit = null;
+            destinationTile = value;
+            destinationTile.AssociatedUnit = this;
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
 
         Ray ray = new Ray(transform.position, Vector3.down);
         int layer_mask = LayerMask.GetMask("Tiles"); // We're only hitting tiles here
@@ -30,9 +46,9 @@ public class Unit : MonoBehaviour {
             if (hitObject.GetComponent<Tile>() != null)
             {
                 // We are over a tile
-                destinationTile = hitObject.GetComponent<Tile>();
-                destination = destinationTile.transform.position + offset;
-                destinationTile.AssociatedUnit = this;
+                DestinationTile = hitObject.GetComponent<Tile>();
+                destination = DestinationTile.transform.position + offset;
+                DestinationTile.AssociatedUnit = this;
             }
         }
 
@@ -44,7 +60,7 @@ public class Unit : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        destination = destinationTile.transform.position + offset;
+        destination = DestinationTile.transform.position + offset;
 
         // Move towards destination
         Vector3 direction = destination - transform.position;

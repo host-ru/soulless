@@ -133,10 +133,10 @@ public class Map : MonoBehaviour {
     public float CostToEnterTile(Tile tile)
     {
         TileType tt = tileTypes[tile.tileType];
-        //if (tile.AssociatedUnit != null && tile.AssociatedUnit != )
-        //    return Mathf.Infinity;
-        //else
-        return tt.movementCost;
+        if (tile.AssociatedUnit != null)
+            return Mathf.Infinity;
+        else
+            return tt.movementCost;
     }
 
     public Tile GetTile(int x, int y)

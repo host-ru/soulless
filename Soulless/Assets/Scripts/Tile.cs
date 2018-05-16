@@ -9,6 +9,7 @@ public class Tile : MonoBehaviour {
     public int y;
     public int tileType;
     public bool isOccupied;
+    public bool isAvailableToMoveOn;
 
     private Unit associatedUnit = null;
 

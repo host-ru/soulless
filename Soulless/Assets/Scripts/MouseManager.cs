@@ -15,6 +15,7 @@ public class MouseManager : MonoBehaviour {
     GameObject hitObject = null;
     bool waitingUnitToStop = false;
     List<GameObject> highlightMoves = new List<GameObject>();
+    List<Tile> availableTiles;
 
 	// Use this for initialization
 	void Start () {
@@ -37,10 +38,10 @@ public class MouseManager : MonoBehaviour {
         RaycastHit hitInfo;
 
         // Highlight all available tiles to move
-        if (selectedUnit != null && highlightMoves.Count == 0 && (waitingUnitToStop == false))
-        {
-            HighlightAvailableTiles();
-        }
+        //if (selectedUnit != null && highlightMoves.Count == 0 && (waitingUnitToStop == false) && selectedUnit.movesLeft != 0)
+        //{
+        //    HighlightAvailableTiles();
+        //}
 
         if (Physics.Raycast(ray, out hitInfo, maxDistance, layer_mask))
         {
@@ -73,23 +74,21 @@ public class MouseManager : MonoBehaviour {
         }
         else if (Input.GetMouseButtonDown(1))
         {
-            if (selectedUnit != null && !waitingUnitToStop && hitObject.GetComponent<Tile>().AssociatedUnit == null)
+            if (selectedUnit != null && !waitingUnitToStop && hitObject.GetComponent<Tile>().AssociatedUnit == null && hitObject.GetComponent<Tile>().isAvailableToMoveOn)
             {
-                StartCoroutine("WaitUntilUnitStops");
+                StartCoroutine("MoveUnitTo");
             }
         }
     }
 
-    IEnumerator WaitUntilUnitStops()
+    IEnumerator MoveUnitTo()
     {
         waitingUnitToStop = true;
-        currentPath = map.GeneratePath(selectedUnit.destinationTile, hitObject.GetComponent<Tile>());
+        currentPath = map.GeneratePath(selectedUnit.DestinationTile, hitObject.GetComponent<Tile>());
 
         GameObject path = new GameObject();
         path.name = "Path";
 
-        selectedUnit.destinationTile.AssociatedUnit = null;
-        hitObject.GetComponent<Tile>().AssociatedUnit = selectedUnit;
         Vector3[] positions = new Vector3[currentPath.Count];
         for (int i = 0; i < currentPath.Count; i++)
         {
@@ -111,14 +110,15 @@ public class MouseManager : MonoBehaviour {
 
             Destroy(lines[i]);
 
-            selectedUnit.destinationTile = currentPath[i];
             selectedUnit.movesLeft -= map.CostToEnterTile(currentPath[i]);
+            selectedUnit.DestinationTile = currentPath[i];
+
+            ClearHighlightedTiles(); 
 
             while (!selectedUnit.isMoving)
                 yield return new WaitForFixedUpdate();
             while (selectedUnit.isMoving)
             {
-                ClearHighlightedTiles(); 
                 //Vector3 desiredDirection = new Vector3(currentPath[i].transform.position.x, 0, currentPath[i].transform.position.z) - positions[i];
                 //lines[i].transform.localScale = new Vector3(0, 0.2f, 0);
                 yield return new WaitForFixedUpdate();
@@ -130,9 +130,13 @@ public class MouseManager : MonoBehaviour {
         currentPath = null;
         waitingUnitToStop = false;
 
+
         // Temporary
-        if (selectedUnit.movesLeft < 0)
+        if (selectedUnit.movesLeft == 0)
             selectedUnit.movesLeft = selectedUnit.moves;
+
+
+        HighlightAvailableTiles();
     }
 
     void HighlightAvailableTiles()
@@ -141,11 +145,12 @@ public class MouseManager : MonoBehaviour {
         {
             ClearHighlightedTiles();
         }
-        List<Tile> availableTiles = map.GetAvailableTiles(selectedUnit.destinationTile, selectedUnit.destinationTile, selectedUnit.movesLeft);
+        availableTiles = map.GetAvailableTiles(selectedUnit.DestinationTile, selectedUnit.DestinationTile, selectedUnit.movesLeft);
         availableTiles.RemoveAt(0);
         for (int i = 0; i < availableTiles.Count; i++)
         {
             highlightMoves.Add((GameObject)Instantiate(highlightMovesPrefab, availableTiles[i].transform.position, Quaternion.identity, GameObject.Find("HighlightMoves").transform));
+            availableTiles[i].isAvailableToMoveOn = true;
         }
     }
 
@@ -154,7 +159,9 @@ public class MouseManager : MonoBehaviour {
         for (int j = 0; j < highlightMoves.Count; j++)
         {
             Destroy(highlightMoves[j]);
+            availableTiles[j].isAvailableToMoveOn = false;
         }
         highlightMoves.Clear();
+        availableTiles.Clear();
     }
 }
