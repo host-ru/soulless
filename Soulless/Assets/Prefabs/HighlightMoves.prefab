@@ -19,7 +19,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4176432998659996}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: HighlightMoves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37,7 +37,7 @@ GameObject:
   - component: {fileID: 33653044068450394}
   - component: {fileID: 64635860717898966}
   - component: {fileID: 23403621944518810}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Quad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,8 +65,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1840095921915428}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.01, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8000005, z: 1}
+  m_LocalPosition: {x: 0, y: 0.51, z: 0}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
   m_Children: []
   m_Father: {fileID: 4176432998659996}
   m_RootOrder: 0
