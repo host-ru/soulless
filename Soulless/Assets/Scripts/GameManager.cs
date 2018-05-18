@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class GameManager : MonoBehaviour {
 
     public GameObject mapPrefab;
@@ -9,6 +10,18 @@ public class GameManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+        GameObject placeholder;
+        placeholder = GameObject.Find("Map");
+        if (placeholder != null)
+        {
+            DestroyImmediate(placeholder);
+        }
+
+        placeholder = GameObject.Find("Units");
+        if (placeholder != null)
+            DestroyImmediate(placeholder);
+
         CreateMap("Map");
         CreateUnit("Unit1", unitPrefab, new Vector3(0, 1, 0), Quaternion.identity);
         CreateUnit("Unit2", unitPrefab, new Vector3(5, 1, 5), Quaternion.identity);
@@ -22,6 +35,13 @@ public class GameManager : MonoBehaviour {
     void CreateUnit(string name, GameObject unitPrefab, Vector3 position, Quaternion rotation)
     {
         GameObject obj;
+        obj = GameObject.Find("Units");
+        if (obj == null)
+        {
+            obj = new GameObject();
+            obj.name = "Units";
+        }
+        
         obj = (GameObject)Instantiate(unitPrefab, position, rotation, GameObject.Find("Units").transform);
         obj.name = name;
     }
