@@ -122,8 +122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb212d90dffe87543be225a8f5b6c1e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  destinationTile: {fileID: 0}
-  speed: 2
+  speed: 4
   isMoving: 0
   moves: 5
   movesLeft: 5

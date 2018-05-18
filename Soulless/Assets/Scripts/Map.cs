@@ -10,6 +10,7 @@ public class Map : MonoBehaviour {
     public int width = 12;
     public int height = 12;
     public float zOffset = -0.5f;
+    public GameObject linePrefab;
 
     public TileType[] tileTypes;
 
@@ -164,7 +165,7 @@ public class Map : MonoBehaviour {
     public List<Tile> GetAvailableTiles(Tile startTile, Tile destinationTile, float moves)
     {
         List<Tile> availableTiles = new List<Tile>();
-        Dictionary<Node, float> distance = Dijkstra(startTile, destinationTile);
+        Dictionary<Node, float> distance = Dijkstra(startTile, destinationTile, moves);
         foreach(KeyValuePair<Node, float> n in distance)
         {
             if (n.Value <= moves)
@@ -216,6 +217,8 @@ public class Map : MonoBehaviour {
                     u = possibleU;
                 }
             }
+            if (u == target)
+                break;
 
             unvisited.Remove(u);
 
@@ -249,5 +252,105 @@ public class Map : MonoBehaviour {
 
         currentPath.Reverse();
         return dist;
+    }
+
+    Dictionary<Node, float> Dijkstra(Tile startTile, Tile destinationTile, float moves)
+    {
+        GeneratePathfindingGraph();
+        currentPath = null;
+
+        // Using Dijkstra's algorithm, calculate the path
+        Dictionary<Node, float> dist = new Dictionary<Node, float>();
+        Dictionary<Node, Node> prev = new Dictionary<Node, Node>();
+
+        List<Node> unvisited = new List<Node>();
+
+        Node source = graph[startTile.x, startTile.y];
+        Node target = graph[destinationTile.x, destinationTile.y];
+
+        dist[source] = 0;
+        prev[source] = null;
+
+        // Initialize dist array with Inf
+        foreach (Node v in graph)
+        {
+            if (v != source)
+            {
+                dist[v] = Mathf.Infinity;
+                prev[v] = null;
+            }
+
+            unvisited.Add(v);
+        }
+
+        while (unvisited.Count > 0)
+        {
+            Node u = null;
+
+            foreach (Node possibleU in unvisited)
+            {
+                if (u == null || dist[possibleU] < dist[u])
+                {
+                    u = possibleU;
+                }
+            }
+            if (dist[u] >= moves)
+                break;
+
+            unvisited.Remove(u);
+
+            foreach (Node v in u.neighbors)
+            {
+                //float alt = dist[u] + u.DistanceTo(v);
+                float alt = dist[u] + CostToEnterTile(GetTile(v.x, v.y));
+                if (alt < dist[v])
+                {
+                    dist[v] = alt;
+                    prev[v] = u;
+                }
+            }
+        }
+
+        if (prev[target] == null)
+        {
+            // No route to the target
+            return dist;
+        }
+
+        currentPath = new List<Node>();
+
+        Node curr = target;
+
+        while (curr != null)
+        {
+            currentPath.Add(curr);
+            curr = prev[curr];
+        }
+
+        currentPath.Reverse();
+        return dist;
+    }
+
+    public List<GameObject> ShowPath(List<Tile> desiredPath)
+    {
+
+        GameObject path = new GameObject();
+        path.name = "Path";
+
+        Vector3[] positions = new Vector3[desiredPath.Count];
+        for (int i = 0; i < desiredPath.Count; i++)
+        {
+            positions[i] = new Vector3(desiredPath[i].transform.position.x, 0, desiredPath[i].transform.position.z);
+        }
+        List<GameObject> lines = new List<GameObject>();
+        for (int i = 1; i < desiredPath.Count; i++)
+        {
+            GameObject pathLine = linePrefab;
+            Vector3 desiredDirection = new Vector3(desiredPath[i].transform.position.x, 0, desiredPath[i].transform.position.z) - positions[i - 1];
+            desiredDirection = desiredDirection.normalized;
+            Quaternion q = Quaternion.Euler(90 * desiredDirection.z, 90 * desiredDirection.y, -90 * desiredDirection.x);
+            lines.Add((GameObject)Instantiate(pathLine, positions[i - 1], q, path.transform));
+        }
+        return lines;
     }
 }

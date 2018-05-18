@@ -7,11 +7,10 @@ public class MouseManager : MonoBehaviour {
 
     public Map map;
     public GameObject linePrefab;
-    public GameObject highlightClicksPrefab;
     public GameObject highlightMovesPrefab;
 
     public Unit selectedUnit;
-    List<Tile> currentPath = null;
+    //List<Tile> currentPath = null;
     GameObject hitObject = null;
     bool waitingUnitToStop = false;
     List<GameObject> highlightMoves = new List<GameObject>();
@@ -37,17 +36,12 @@ public class MouseManager : MonoBehaviour {
         float maxDistance = 1000f;
         RaycastHit hitInfo;
 
-        // Highlight all available tiles to move
-        //if (selectedUnit != null && highlightMoves.Count == 0 && (waitingUnitToStop == false) && selectedUnit.movesLeft != 0)
-        //{
-        //    HighlightAvailableTiles();
-        //}
 
         if (Physics.Raycast(ray, out hitInfo, maxDistance, layer_mask))
         {
             // Identify the object we hit
-            hitObject = hitInfo.collider.transform.parent.gameObject; 
-            
+            hitObject = hitInfo.collider.transform.parent.gameObject;
+
             // Check what kind of object this is
             if (hitObject.GetComponent<Tile>() != null)
             {
@@ -55,7 +49,7 @@ public class MouseManager : MonoBehaviour {
                 MouseOverTile(hitObject);
             }
         }
-	}
+    }
 
     void MouseOverTile(GameObject hitObject)
     {
@@ -84,25 +78,11 @@ public class MouseManager : MonoBehaviour {
     IEnumerator MoveUnitTo()
     {
         waitingUnitToStop = true;
-        currentPath = map.GeneratePath(selectedUnit.DestinationTile, hitObject.GetComponent<Tile>());
-
-        GameObject path = new GameObject();
-        path.name = "Path";
-
-        Vector3[] positions = new Vector3[currentPath.Count];
-        for (int i = 0; i < currentPath.Count; i++)
-        {
-            positions[i] = new Vector3(currentPath[i].transform.position.x, 0, currentPath[i].transform.position.z);
-        }
-        List<GameObject> lines = new List<GameObject>();
-        for (int i = 1; i < currentPath.Count; i++)
-        {
-            GameObject pathLine = linePrefab;
-            Vector3 desiredDirection = new Vector3(currentPath[i].transform.position.x, 0, currentPath[i].transform.position.z) - positions[i - 1];
-            desiredDirection = desiredDirection.normalized;
-            Quaternion q = Quaternion.Euler(90 * desiredDirection.z, 90 * desiredDirection.y, - 90 * desiredDirection.x);
-            lines.Add((GameObject)Instantiate(pathLine, positions[i - 1], q, path.transform));
-        }
+        GameObject oldPath = GameObject.Find("Path");
+        
+        Destroy(oldPath);
+        List<Tile> currentPath = map.GeneratePath(selectedUnit.DestinationTile, hitObject.GetComponent<Tile>());
+        List<GameObject> lines = map.ShowPath(currentPath);
 
         currentPath.RemoveAt(0);
         for (int i = 0; i < currentPath.Count; i++)
@@ -126,7 +106,7 @@ public class MouseManager : MonoBehaviour {
 
         }
         lines.Clear();
-        Destroy(path);
+        Destroy(GameObject.Find("Path"));
         currentPath = null;
         waitingUnitToStop = false;
 

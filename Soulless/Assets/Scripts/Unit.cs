@@ -52,10 +52,6 @@ public class Unit : MonoBehaviour {
                 DestinationTile.AssociatedUnit = this;
             }
         }
-
-        //destinationTile = GameObject.Find("tile_0_0").GetComponent<Tile>();
-        //destination = transform.position;
-        //destinationTile.associatedUnit = this;
 	}
 	
 	// Update is called once per frame
