@@ -38,6 +38,9 @@ public class Map : MonoBehaviour {
 	void Start () {
         GenerateMap();
         InstantiateMap();
+        CameraController cameraController = Camera.main.GetComponent<CameraController>();
+        cameraController.panLimit.x = width;
+        cameraController.panLimit.y = height;
 	}
 	
 	// Update is called once per frame

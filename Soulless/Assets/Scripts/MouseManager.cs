@@ -15,7 +15,7 @@ public class MouseManager : MonoBehaviour {
     GameObject hitObject = null;
     bool waitingUnitToStop = false;
     List<GameObject> highlightMoves = new List<GameObject>();
-    List<Tile> availableTiles;
+    List<Tile> availableTiles = new List<Tile>();
 
 	// Use this for initialization
 	void Start () {
