@@ -51,8 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a755e103f26e1e41a06d6cda6648ac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 50
-  height: 50
+  width: 30
+  height: 30
   zOffset: -0.5
   linePrefab: {fileID: 1497815729659586, guid: 3529f1b7ef802464aaba158c2d41d925, type: 2}
   tileTypes:

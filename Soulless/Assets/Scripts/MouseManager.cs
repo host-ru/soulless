@@ -8,6 +8,7 @@ public class MouseManager : MonoBehaviour {
     public Map map;
     public GameObject linePrefab;
     public GameObject highlightMovesPrefab;
+    public GameObject highlightUnitPrefab;
 
     public Unit selectedUnit;
     //List<Tile> currentPath = null;
@@ -15,6 +16,7 @@ public class MouseManager : MonoBehaviour {
     bool waitingUnitToStop = false;
     List<GameObject> highlightMoves = new List<GameObject>();
     List<Tile> availableTiles = new List<Tile>();
+    GameObject highlightUnit = null;
 
 	// Use this for initialization
 	void Start () {
@@ -61,9 +63,18 @@ public class MouseManager : MonoBehaviour {
             {
                 selectedUnit = hitObject.GetComponent<Tile>().AssociatedUnit;
                 if (selectedUnit != null)
+                {
+                    if (highlightUnit != null)
+                        Destroy(highlightUnit);
+                    highlightUnit = (GameObject)Instantiate(highlightUnitPrefab, selectedUnit.DestinationTile.transform.position, Quaternion.identity, selectedUnit.transform);
                     HighlightAvailableTiles();
+                }
                 else
+                {
+                    if (highlightUnit != null)
+                        Destroy(highlightUnit);
                     ClearHighlightedTiles();
+                }
             }
         }
         else if (Input.GetMouseButtonDown(1))
