@@ -54,31 +54,36 @@ public class Map : MonoBehaviour {
     {
         tiles = new int[width, height];
 
+        float[] distribution = new float[tileTypes.Length];
+
+        // Set up probabilities of different terrains
+        distribution[1] = 0.1f;
+        distribution[2] = 0.02f;
+        distribution[3] = 0f;
+
+        distribution[0] = 1f;
+        for (int i = 1; i < distribution.Length; i++)
+        {
+            distribution[0] -= distribution[i]; 
+        }
+
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
-                tiles[i, j] = 0;
+                float rnd = Random.Range(0f, 1f);
+
+                if (rnd <= distribution[1])
+                    tiles[i, j] = 1;
+                else if (rnd <= distribution[1] + distribution[2])
+                    tiles[i, j] = 2;
+                else if (rnd <= distribution[1] + distribution[2] + distribution[3])
+                    tiles[i, j] = 3;
+                else
+                    tiles[i, j] = 0;
             }
         }
 
-        tiles[4, 4] = 1;
-        tiles[5, 4] = 1;
-        tiles[6, 4] = 1;
-        tiles[7, 4] = 1;
-        tiles[8, 4] = 1;
-        tiles[4, 5] = 1;
-        tiles[4, 6] = 1;
-        tiles[8, 5] = 1;
-        tiles[8, 6] = 1;
-
-        for (int i = 3; i < 6; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                tiles[i, j] = 3;
-            }
-        }
     }
 
     void GeneratePathfindingGraph()
