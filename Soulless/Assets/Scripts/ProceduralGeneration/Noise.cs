@@ -15,7 +15,7 @@ public static class Noise {
 
         float maxPossibleHeight = 0;
         float amplitude = 1;
-        float frequency = 1; ;
+        float frequency = 1;
 
         for (int i = 0; i < settings.octaves; i++)
         {
@@ -30,8 +30,8 @@ public static class Noise {
         float maxLocalNoiseHeight = float.MinValue;
         float minLocalNoiseHeight = float.MaxValue;
 
-        float halfWidth = mapWidth / 2;
-        float halfHeight = mapHeight / 2;
+        float halfWidth = mapWidth / 2f;
+        float halfHeight = mapHeight / 2f;
 
         for (int y = 0; y < mapHeight; y++)
         {

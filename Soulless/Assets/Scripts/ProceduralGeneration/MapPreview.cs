@@ -81,8 +81,8 @@ public class MapPreview : MonoBehaviour {
 
         if (textureData != null)
         {
-            textureData.OnValuesUpdated -= OnValuesUpdated;
-            textureData.OnValuesUpdated += OnValuesUpdated;
+            textureData.OnValuesUpdated -= OnTextureValuesUpdated;
+            textureData.OnValuesUpdated += OnTextureValuesUpdated;
         }
     }
 }

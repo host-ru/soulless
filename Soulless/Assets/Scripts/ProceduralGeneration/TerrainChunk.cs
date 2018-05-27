@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrainChunk : MonoBehaviour {
+public class TerrainChunk {
 
     const float colliderGenerationDistanceThreshold = 5;
     public event System.Action<TerrainChunk, bool> onVisibilityChanged;
@@ -70,11 +70,11 @@ public class TerrainChunk : MonoBehaviour {
 
     public void Load()
     {
-        ThreadedDataRequester.RequestData(() => HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, meshSettings.numVertsPerLine, heightMapSettings, sampleCenter), OnMapDataReceived);
+        ThreadedDataRequester.RequestData(() => HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, meshSettings.numVertsPerLine, heightMapSettings, sampleCenter), OnHeightMapReceived);
         
     }
 
-    void OnMapDataReceived(object heightMapObject)
+    void OnHeightMapReceived(object heightMapObject)
     {
         this.heightMap = (HeightMap)heightMapObject;
         heightMapReceived = true;
@@ -91,25 +91,25 @@ public class TerrainChunk : MonoBehaviour {
     }
 
 
-    void OnMeshDataReceived(MeshData meshData)
-    {
-        meshFilter.mesh = meshData.CreateMesh();
-    }
+    //void OnMeshDataReceived(MeshData meshData)
+    //{
+    //    meshFilter.mesh = meshData.CreateMesh();
+    //}
 
     public void UpdateTerrainChunk()
     {
         if (heightMapReceived)
         {
-            float viewerDstFromNearEdge = Mathf.Sqrt(bounds.SqrDistance(viewerPosition));
+            float viewerDstFromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(viewerPosition));
             bool wasVisible = isVisible();
-            bool visible = viewerDstFromNearEdge <= maxViewDst;
+            bool visible = viewerDstFromNearestEdge <= maxViewDst;
 
             if (visible)
             {
                 int lodIndex = 0;
                 for (int i = 0; i < detailLevels.Length - 1; i++)
                 {
-                    if (viewerDstFromNearEdge > detailLevels[i].visibleDstThreshold)
+                    if (viewerDstFromNearestEdge > detailLevels[i].visibleDstThreshold)
                     {
                         lodIndex = i + 1;
                     }
