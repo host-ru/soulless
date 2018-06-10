@@ -11,12 +11,13 @@ public class MouseManager : MonoBehaviour {
     public GameObject highlightUnitPrefab;
 
     public Unit selectedUnit;
-    //List<Tile> currentPath = null;
-    GameObject hitObject = null;
     bool waitingUnitToStop = false;
     List<GameObject> highlightMoves = new List<GameObject>();
     List<Tile> availableTiles = new List<Tile>();
     GameObject highlightUnit = null;
+
+    // For mousing over, reduces number of draws
+    Tile prevTile = null;
 
 	// Use this for initialization
 	void Start () {
@@ -34,7 +35,7 @@ public class MouseManager : MonoBehaviour {
 
         // Getting info about what object we're looking at
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        int layer_mask = LayerMask.GetMask("Tiles"); // We're only hitting tiles here
+        int layer_mask = LayerMask.GetMask("Map"); // We're only hitting tiles here
         float maxDistance = 1000f;
         RaycastHit hitInfo;
 
@@ -42,31 +43,47 @@ public class MouseManager : MonoBehaviour {
         if (Physics.Raycast(ray, out hitInfo, maxDistance, layer_mask))
         {
             // Identify the object we hit
-            hitObject = hitInfo.collider.transform.parent.gameObject;
+            GameObject hitObject = hitInfo.collider.transform.parent.gameObject;
 
             // Check what kind of object this is
-            if (hitObject.GetComponent<Tile>() != null)
+            if (hitObject.GetComponent<Map>() != null)
             {
-                // We are over a tile
-                MouseOverTile(hitObject);
+                // We are over a mesh
+                Vector3 meshBorder = map.GetMeshBorder();
+                Vector3 meshWorldSize = map.GetMeshWorldSize();
+                Vector3 hitCoord = hitInfo.transform.InverseTransformPoint(hitInfo.point + meshWorldSize / 2);
+
+                // Check if we're hitting an actual tile
+                if (hitCoord.x >= 0 && hitCoord.x <= meshWorldSize.x - meshBorder.x * 2 && hitCoord.z >= 0 && hitCoord.z <= meshWorldSize.z - meshBorder.z * 2)
+                {
+                    Tile hitTile = map.GetTileByCoord(hitCoord);
+                    MouseOverTile(hitTile, prevTile);
+                }
             }
         }
     }
 
-    void MouseOverTile(GameObject hitObject)
+    void MouseOverTile(Tile hitTile)
     {
+        MouseOverTile(hitTile, null);
+    }
+
+    void MouseOverTile(Tile hitTile, Tile prevTile)
+    {
+        
+            
         if (Input.GetMouseButtonDown(0))
         {
             // We clicked at a tile, do something...
 
             if (selectedUnit == null || !selectedUnit.isMoving)
             {
-                selectedUnit = hitObject.GetComponent<Tile>().AssociatedUnit;
+                selectedUnit = hitTile.AssociatedUnit;
                 if (selectedUnit != null)
                 {
                     if (highlightUnit != null)
                         Destroy(highlightUnit);
-                    highlightUnit = (GameObject)Instantiate(highlightUnitPrefab, selectedUnit.DestinationTile.transform.position, Quaternion.identity, selectedUnit.transform);
+                    highlightUnit = (GameObject)Instantiate(highlightUnitPrefab, map.GetTileWorldPosition(selectedUnit.DestinationTile), Quaternion.identity, selectedUnit.transform);
                     HighlightAvailableTiles();
                 }
                 else
@@ -79,20 +96,37 @@ public class MouseManager : MonoBehaviour {
         }
         else if (Input.GetMouseButtonDown(1))
         {
-            if (selectedUnit != null && !waitingUnitToStop && hitObject.GetComponent<Tile>().AssociatedUnit == null && hitObject.GetComponent<Tile>().isAvailableToMoveOn)
+            if (selectedUnit != null && !waitingUnitToStop && hitTile.AssociatedUnit == null && hitTile.isAvailableToMoveOn)
             {
-                StartCoroutine("MoveUnitTo");
+                StartCoroutine("MoveUnitTo", hitTile);
+            }
+        }
+        else if (hitTile.isOccupied)
+        {
+            GameObject oldPath = GameObject.Find("Path");
+            Destroy(oldPath);
+        }
+        else if (selectedUnit != null && !selectedUnit.isMoving && hitTile.isAvailableToMoveOn)
+        {
+            GameObject oldPath = GameObject.Find("Path");
+            Destroy(oldPath);
+
+            if (prevTile == null || hitTile != prevTile)
+            {
+                List<Tile> currentPath = map.GeneratePath(selectedUnit.DestinationTile, hitTile);
+                List<GameObject> lines = map.ShowPath(currentPath);
+                prevTile = hitTile;
             }
         }
     }
 
-    IEnumerator MoveUnitTo()
+    IEnumerator MoveUnitTo(Tile tileToMoveOn)
     {
         waitingUnitToStop = true;
         GameObject oldPath = GameObject.Find("Path");
         
         Destroy(oldPath);
-        List<Tile> currentPath = map.GeneratePath(selectedUnit.DestinationTile, hitObject.GetComponent<Tile>());
+        List<Tile> currentPath = map.GeneratePath(selectedUnit.DestinationTile, tileToMoveOn);
         List<GameObject> lines = map.ShowPath(currentPath);
 
         currentPath.RemoveAt(0);
@@ -140,7 +174,9 @@ public class MouseManager : MonoBehaviour {
         availableTiles.RemoveAt(0);
         for (int i = 0; i < availableTiles.Count; i++)
         {
-            highlightMoves.Add((GameObject)Instantiate(highlightMovesPrefab, availableTiles[i].transform.position, Quaternion.identity, GameObject.Find("HighlightMoves").transform));
+            GameObject newMove = (GameObject)Instantiate(highlightMovesPrefab, map.GetTileWorldPosition(availableTiles[i]), Quaternion.identity, GameObject.Find("HighlightMoves").transform);
+            newMove.transform.localScale = map.GetTileWorldSize() * 0.9f + Vector3.up;
+            highlightMoves.Add(newMove);
             availableTiles[i].isAvailableToMoveOn = true;
         }
     }

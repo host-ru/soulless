@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-[ExecuteInEditMode]
 public class Map : MonoBehaviour {
 
     // Size of the map (tiles)
     public int width = 12;
     public int height = 12;
     public float zOffset = -0.5f;
+    public GameObject mesh;
     public GameObject linePrefab;
 
     public TileType[] tileTypes;
 
-    int[,] tiles;
+    Tile[,] tiles;
 
     public class Node
     {
@@ -37,9 +37,8 @@ public class Map : MonoBehaviour {
     List<Node> currentPath = null;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         GenerateMap();
-        InstantiateMap();
         CameraController cameraController = Camera.main.GetComponent<CameraController>();
         cameraController.panLimit.x = width;
         cameraController.panLimit.y = height;
@@ -52,9 +51,20 @@ public class Map : MonoBehaviour {
 
     void GenerateMap()
     {
-        tiles = new int[width, height];
+        tiles = new Tile[width, height];
 
         float[] distribution = new float[tileTypes.Length];
+
+        // Setting up coordinates
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                tiles[i, j] = new Tile();
+                tiles[i, j].x = i;
+                tiles[i, j].y = j;
+            }
+        }
 
         // Set up probabilities of different terrains
         distribution[1] = 0.1f;
@@ -74,13 +84,13 @@ public class Map : MonoBehaviour {
                 float rnd = Random.Range(0f, 1f);
 
                 if (rnd <= distribution[1])
-                    tiles[i, j] = 1;
+                    tiles[i, j].tileType = 1;
                 else if (rnd <= distribution[1] + distribution[2])
-                    tiles[i, j] = 2;
+                    tiles[i, j].tileType = 2;
                 else if (rnd <= distribution[1] + distribution[2] + distribution[3])
-                    tiles[i, j] = 3;
+                    tiles[i, j].tileType = 3;
                 else
-                    tiles[i, j] = 0;
+                    tiles[i, j].tileType = 0;
             }
         }
 
@@ -116,30 +126,6 @@ public class Map : MonoBehaviour {
         }
     }
 
-    void InstantiateMap()
-    {
-        for (int j = 0; j < height; j++)
-        {
-            // Setting up rows (don't really know why I need them)
-            GameObject rowGameObject = new GameObject();
-            rowGameObject.name = "Row_" + j;
-            rowGameObject.transform.parent = this.transform;
-            rowGameObject.transform.position = new Vector3(0, 0, j);
-
-            for (int i = 0; i < width; i++)
-            {
-                // Instantiating tiles from prefab
-                Vector3 position = new Vector3(i, zOffset, j);
-                GameObject tileGameObject = (GameObject)Instantiate(tileTypes[tiles[i, j]].tilePrefab, position, Quaternion.identity);
-                tileGameObject.name = "tile_" + i + "_" + j;
-                tileGameObject.GetComponent<Tile>().x = i;
-                tileGameObject.GetComponent<Tile>().y = j;
-                tileGameObject.GetComponent<Tile>().tileType = tiles[i, j];
-                tileGameObject.transform.parent = this.transform.Find("Row_" + j);
-            }
-        }
-    }
-
     public float CostToEnterTile(Tile tile)
     {
         TileType tt = tileTypes[tile.tileType];
@@ -151,7 +137,38 @@ public class Map : MonoBehaviour {
 
     public Tile GetTile(int x, int y)
     {
-        return GameObject.Find("tile_" + x + "_" + y).GetComponent<Tile>();
+        return tiles[x, y];
+    }
+
+    public Vector3 GetTileWorldSize()
+    {
+        return new Vector3(GetMeshWorldSize().x / width, 0, GetMeshWorldSize().z / height);  
+    }
+
+    public Vector3 GetTileWorldPosition(Tile tile)
+    {
+        Vector3 meshWorldSize = GetMeshWorldSize();
+        Vector3 bottomLeftCorner = mesh.transform.position - meshWorldSize / 2;
+        float tileWidth = GetTileWorldSize().x;
+        float tileHeight = GetTileWorldSize().z;
+        return bottomLeftCorner + new Vector3(tileWidth * tile.x, 0, tileHeight * tile.y) + new Vector3(tileWidth / 2, 0, tileHeight / 2);
+    }
+
+    public Vector3 GetMeshBorder()
+    {
+        return new Vector3(5, 0, 5) / 2;
+    }
+
+    public Vector3 GetMeshWorldSize()
+    {
+        Bounds meshBounds = mesh.transform.GetComponentInChildren<MeshRenderer>().bounds;
+        return new Vector3(meshBounds.size.x, 0, meshBounds.size.z) - GetMeshBorder() * 2;
+    }
+
+    public Tile GetTileByCoord(Vector3 coord)
+    {
+        Vector2 position = new Vector2(Mathf.Floor((coord.x * width) / GetMeshWorldSize().x), Mathf.Floor((coord.z * height) / GetMeshWorldSize().z));
+        return GetTile((int)position.x, (int)position.y);
     }
 
     public List<Tile> GeneratePath(Tile startTile, Tile destinationTile)
@@ -345,16 +362,18 @@ public class Map : MonoBehaviour {
         Vector3[] positions = new Vector3[desiredPath.Count];
         for (int i = 0; i < desiredPath.Count; i++)
         {
-            positions[i] = new Vector3(desiredPath[i].transform.position.x, 0, desiredPath[i].transform.position.z);
+            positions[i] = new Vector3(GetTileWorldPosition(desiredPath[i]).x, 0, GetTileWorldPosition(desiredPath[i]).z);
         }
         List<GameObject> lines = new List<GameObject>();
         for (int i = 1; i < desiredPath.Count; i++)
         {
             GameObject pathLine = linePrefab;
-            Vector3 desiredDirection = new Vector3(desiredPath[i].transform.position.x, 0, desiredPath[i].transform.position.z) - positions[i - 1];
+            Vector3 desiredDirection = new Vector3(GetTileWorldPosition(desiredPath[i]).x, 0, GetTileWorldPosition(desiredPath[i]).z) - positions[i - 1];
             desiredDirection = desiredDirection.normalized;
             Quaternion q = Quaternion.Euler(90 * desiredDirection.z, 90 * desiredDirection.y, -90 * desiredDirection.x);
-            lines.Add((GameObject)Instantiate(pathLine, positions[i - 1], q, path.transform));
+            GameObject newPath = (GameObject)Instantiate(pathLine, positions[i - 1], q, path.transform);
+            newPath.transform.localScale = GetTileWorldSize() + Vector3.up * GetTileWorldSize().z;
+            lines.Add(newPath);
         }
         return lines;
     }

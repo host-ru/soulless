@@ -18,7 +18,7 @@ MonoBehaviour:
     octaves: 6
     persistance: 0.6
     lacunarity: 2
-    seed: 5
+    seed: 8
     offset: {x: 0, y: 0}
   useFalloff: 1
   heightMultiplier: 50
@@ -32,10 +32,10 @@ MonoBehaviour:
       outSlope: 0
       tangentMode: 0
     - serializedVersion: 2
-      time: 0.400527
-      value: 0.04213916
-      inSlope: 0.35386145
-      outSlope: 0.35386145
+      time: 0.39707136
+      value: 0.04009778
+      inSlope: 0.23768848
+      outSlope: 0.23768848
       tangentMode: 0
     - serializedVersion: 2
       time: 1

@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tile : MonoBehaviour {
+[System.Serializable]
+public class Tile {
 
     // Coordinates of a tile
     public int x;

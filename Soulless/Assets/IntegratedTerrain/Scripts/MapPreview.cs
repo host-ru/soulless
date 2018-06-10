@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class MapPreview : MonoBehaviour {
@@ -6,6 +6,7 @@ public class MapPreview : MonoBehaviour {
 	public Renderer textureRender;
 	public MeshFilter meshFilter;
 	public MeshRenderer meshRenderer;
+    public MeshCollider meshCollider;
 
 
 	public enum DrawMode {NoiseMap, Mesh, FalloffMap};
@@ -35,12 +36,16 @@ public class MapPreview : MonoBehaviour {
 			DrawTexture (TextureGenerator.TextureFromHeightMap (heightMap));
 		} else if (drawMode == DrawMode.Mesh) {
 			DrawMesh (MeshGenerator.GenerateTerrainMesh (heightMap.values,meshSettings, editorPreviewLOD));
+            CreateCollider(meshCollider, meshFilter.sharedMesh);
 		} else if (drawMode == DrawMode.FalloffMap) {
 			DrawTexture(TextureGenerator.TextureFromHeightMap(new HeightMap(FalloffGenerator.GenerateFalloffMap(meshSettings.numVertsPerLine),0,1)));
 		}
 	}
 
-
+    public void CreateCollider(MeshCollider meshCollider, Mesh mesh)
+    {
+        meshCollider.sharedMesh = mesh;
+    }
 
 
 
