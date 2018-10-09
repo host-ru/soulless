@@ -9,7 +9,7 @@ public class Map : MonoBehaviour {
     public int width = 12;
     public int height = 12;
     public float zOffset = -0.5f;
-    public GameObject mesh;
+    public GameObject meshPrefab;
     public GameObject linePrefab;
 
     public TileType[] tileTypes;
@@ -39,9 +39,9 @@ public class Map : MonoBehaviour {
 	// Use this for initialization
 	void Awake () {
         GenerateMap();
-        CameraController cameraController = Camera.main.GetComponent<CameraController>();
-        cameraController.panLimit.x = width;
-        cameraController.panLimit.y = height;
+        //CameraController cameraController = Camera.main.GetComponent<CameraController>();
+        //cameraController.panLimit.x = width;
+        //cameraController.panLimit.y = height;
 	}
 	
 	// Update is called once per frame
@@ -63,34 +63,7 @@ public class Map : MonoBehaviour {
                 tiles[i, j] = new Tile();
                 tiles[i, j].x = i;
                 tiles[i, j].y = j;
-            }
-        }
-
-        // Set up probabilities of different terrains
-        distribution[1] = 0.1f;
-        distribution[2] = 0.02f;
-        distribution[3] = 0f;
-
-        distribution[0] = 1f;
-        for (int i = 1; i < distribution.Length; i++)
-        {
-            distribution[0] -= distribution[i]; 
-        }
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                float rnd = Random.Range(0f, 1f);
-
-                if (rnd <= distribution[1])
-                    tiles[i, j].tileType = 1;
-                else if (rnd <= distribution[1] + distribution[2])
-                    tiles[i, j].tileType = 2;
-                else if (rnd <= distribution[1] + distribution[2] + distribution[3])
-                    tiles[i, j].tileType = 3;
-                else
-                    tiles[i, j].tileType = 0;
+                tiles[i, j].tileType = 0;
             }
         }
 
@@ -148,10 +121,28 @@ public class Map : MonoBehaviour {
     public Vector3 GetTileWorldPosition(Tile tile)
     {
         Vector3 meshWorldSize = GetMeshWorldSize();
-        Vector3 bottomLeftCorner = mesh.transform.position - meshWorldSize / 2;
+        Vector3 bottomLeftCorner = meshPrefab.transform.position - meshWorldSize / 2;
         float tileWidth = GetTileWorldSize().x;
         float tileHeight = GetTileWorldSize().z;
-        return bottomLeftCorner + new Vector3(tileWidth * tile.x, 0, tileHeight * tile.y) + new Vector3(tileWidth / 2, 0, tileHeight / 2);
+        Vector3 tileWorldPosition = bottomLeftCorner + new Vector3(tileWidth * tile.x, 0, tileHeight * tile.y) + new Vector3(tileWidth / 2, 0, tileHeight / 2);
+
+        // Setting up Y coordinate for a tile using mesh
+        //Mesh mesh = meshPrefab.GetComponentInChildren<Mesh>();
+        float maxHeight = meshPrefab.GetComponent<MapPreview>().heightMapSettings.heightMultiplier + 1;
+
+        RaycastHit raycastHit;
+        //int layer_mask = LayerMask.GetMask("Map"); // We're only hitting tiles here
+        Ray ray = new Ray(new Vector3(tileWorldPosition.x, maxHeight, tileWorldPosition.z), Vector3.down);
+
+        if (meshPrefab.GetComponentInChildren<MeshCollider>().Raycast(ray, out raycastHit, maxHeight + 1))
+        {
+            tileWorldPosition = raycastHit.point;
+        }
+
+        //float tileY = meshPrefab.GetComponentInChildren<Mesh>().vertices[1].y;
+
+
+        return tileWorldPosition;
     }
 
     public Vector3 GetMeshBorder()
@@ -161,7 +152,7 @@ public class Map : MonoBehaviour {
 
     public Vector3 GetMeshWorldSize()
     {
-        Bounds meshBounds = mesh.transform.GetComponentInChildren<MeshRenderer>().bounds;
+        Bounds meshBounds = meshPrefab.transform.GetComponentInChildren<MeshRenderer>().bounds;
         return new Vector3(meshBounds.size.x, 0, meshBounds.size.z) - GetMeshBorder() * 2;
     }
 

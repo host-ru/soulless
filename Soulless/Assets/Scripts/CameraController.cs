@@ -20,6 +20,8 @@ public class CameraController : MonoBehaviour {
     {
         initialPosition = transform.position;
         initialRotation = transform.rotation;
+
+        transform.position = new Vector3(transform.position.x / 2, transform.position.y, transform.position.z / 2);
     }
 
     // Update is called once per frame
